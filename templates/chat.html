@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepLT Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #e0f7fa;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 30px;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            font-family: 'Arial Black', sans-serif;
+            font-size: 24px;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: bold;
+        }
+
+        .chat-container {
+            flex-grow: 1;
+            padding: 20px;
+            max-width: 800px; /* 입력창과 동일한 너비 설정 */
+            width: 100%;
+            margin: 0 auto; /* 중앙 정렬 */
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            max-height: calc(100vh - 140px); /* header와 input-container 제외한 영역 */
+            height: calc(100vh - 140px);
+            box-sizing: border-box; /* 패딩 포함 계산 */
+        }
+
+        .message {
+            padding: 12px 18px;
+            border-radius: 12px;
+            max-width: 80%; /* 최대 너비를 컨테이너의 80%로 제한 */
+            word-wrap: break-word; /* 긴 텍스트가 줄바꿈되도록 설정 */
+            word-break: break-word; /* 단어 단위 줄바꿈 */
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            line-height: 1.5;
+        }
+
+        .user-message {
+            align-self: flex-end; /* 메시지를 오른쪽에 정렬 */
+            background-color: #8ecae6;
+            color: #fff;
+            border-top-right-radius: 0;
+            animation: slideInRight 0.3s ease;
+        }
+
+        .bot-message {
+            align-self: flex-start; /* 메시지를 왼쪽에 정렬 */
+            background-color: #f1f1f1;
+            color: #333;
+            border-top-left-radius: 0;
+            animation: slideInLeft 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(30px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-30px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* 입력창을 화면 하단에 고정 */
+        .input-container {
+            display: flex;
+            padding: 15px;
+            background-color: #fff;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            bottom: 0;
+            max-width: 800px; /* 입력창과 동일한 너비 설정 */
+            margin: 0 auto; /* 중앙 정렬 */
+            width: 100%;
+            box-sizing: border-box; /* 패딩 포함 계산 */
+        }
+
+        .chat-input {
+            flex-grow: 1;
+            padding: 14px 20px;
+            border: 2px solid #8ecae6;
+            border-radius: 20px;
+            outline: none;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: #219ebc;
+        }
+
+        .send-button {
+            background-color: #219ebc;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 14px 24px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .send-button:hover {
+            background-color: #0b7090;
+        }
+    </style>
+</head>
+<body>
+
+    <header>DeepLT Chat</header>
+
+    <div class="chat-container" id="chatContainer">
+        <!-- Chat messages will appear here -->
+    </div>
+
+    <!-- 입력창 -->
+    <div class="input-container">
+        <input type="text" id="chatInput" class="chat-input" placeholder="Enter your message..." onkeydown="handleKeyDown(event)">
+        <button class="send-button" onclick="submitMessage()">Send</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const initialQuery = sessionStorage.getItem('initial_query');
+            const gptResponse = sessionStorage.getItem('gpt_response');
+
+            if (initialQuery) addMessage(initialQuery, 'user');
+            if (gptResponse) addMessage(gptResponse, 'bot');
+
+            observeChatContainer();
+        });
+
+        function observeChatContainer() {
+            const chatContainer = document.getElementById('chatContainer');
+            const observer = new MutationObserver(scrollToBottom);
+            observer.observe(chatContainer, { childList: true });
+        }
+
+        function scrollToBottom() {
+            const chatContainer = document.getElementById('chatContainer');
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 0);  // DOM 업데이트 이후 실행되도록 지연
+        }
+
+        function addMessage(text, sender) {
+            console.log(`Adding message from ${sender}: ${text}`);  // 디버그 로그 추가
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
+            messageElement.innerText = text;
+            document.getElementById('chatContainer').appendChild(messageElement);
+
+            // DOM 변경 후 스크롤 하단 이동
+            scrollToBottom();
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();  // 기본 Enter 동작 방지
+                console.log("Enter key pressed");  // 디버그 로그 추가
+                submitMessage();
+            }
+        }
+
+        let isSubmitting = false;  // 중복 호출 방지를 위한 플래그 추가
+
+        function submitMessage() {
+            if (isSubmitting) return;  // 이미 제출 중인 경우 실행하지 않음
+            isSubmitting = true;       // 제출 상태 설정
+
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (message) {
+                addMessage(message, 'user');
+                sendMessageToServer(message);
+                input.value = '';
+            }
+            setTimeout(() => { isSubmitting = false; }, 300);  // 짧은 지연 후 플래그 재설정
+        }
+
+        function sendMessageToServer(message) {
+            console.log("Sending message to server:", message);  // 디버그 로그 추가
+            fetch('/process_query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Server response:", data);  // 서버 응답 로그
+                if (data.response) addMessage(data.response, 'bot');
+                else addMessage("Error: No response from server", 'bot');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addMessage("Error: Failed to communicate with server", 'bot');
+            });
+        }
+    </script>
+
+</body>
+</html>

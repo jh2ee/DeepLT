@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Results</title>
+    <style>
+        /* General body styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #e0f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Container for the download page */
+        .download-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            margin: 20px;
+            border: 2px solid #8ecae6;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            color: #219ebc;
+            margin-bottom: 20px;
+        }
+
+        /* Process list */
+        .process-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .process-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .process-item:nth-child(even) {
+            background-color: #f0f8ff;
+        }
+
+        .process-name {
+            font-size: 16px;
+            color: #333;
+        }
+
+        /* Download button */
+        .download-btn {
+            background-color: #8ecae6;
+            color: white;
+            font-size: 14px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .download-btn[disabled] {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Footer links */
+        .footer-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        .footer-links a {
+            color: #4CAF50;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #388E3C;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .process-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .download-btn {
+                margin-top: 10px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="download-container">
+        <h1><strong>Download Results</strong></h1>
+        
+        <ul class="process-list" id="processList">
+            <!-- Process items will be dynamically populated here -->
+        </ul>
+
+        <div class="footer-links">
+            <a href="/manual">Back to Manual Docking</a>
+            <a href="/">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        const processListElement = document.getElementById('processList');
+
+        function renderProcesses(processes) {
+            processListElement.innerHTML = '';
+
+            processes.forEach(process => {
+                const listItem = document.createElement('li');
+                listItem.classList.add('process-item');
+
+                const processName = document.createElement('span');
+                processName.classList.add('process-name');
+                processName.textContent = `Job ${process.job_id.slice(0, 8)} Results`;
+
+                const downloadButton = document.createElement('button');
+                downloadButton.classList.add('download-btn');
+                downloadButton.textContent = 'Download';
+
+                if (process.status === 'Completed') {
+                    downloadButton.onclick = () => downloadFile(process.job_id);
+                } else {
+                    downloadButton.disabled = true;
+                    downloadButton.textContent = 'Processing...';
+                }
+
+                listItem.appendChild(processName);
+                listItem.appendChild(downloadButton);
+                processListElement.appendChild(listItem);
+            });
+        }
+
+        function downloadFile(job_id) {
+            window.location.href = `/download/${job_id}`;
+        }
+
+        function fetchProcessStatuses() {
+            fetch('/job_statuses')
+                .then(response => response.json())
+                .then(data => renderProcesses(data))
+                .catch(error => console.error('Error fetching job statuses:', error));
+        }
+
+        // Initial render and status update interval
+        fetchProcessStatuses();
+        setInterval(fetchProcessStatuses, 5000); // 5초마다 상태 갱신
+    </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+.env
+ANARCI/
+__pycache__/
+pdbfixer/

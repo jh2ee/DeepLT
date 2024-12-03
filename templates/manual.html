@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modeling to Docking</title>
+    <style>
+        /* General body styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #e0f7fa; /* Similar to light sky blue */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Form container */
+        .form-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            margin: 20px;
+            border: 2px solid #8ecae6; /* Border color matching theme */
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            color: #219ebc; /* Similar to theme color */
+            margin-bottom: 20px;
+        }
+
+        /* Flex layout for form fields */
+        .form-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-size: 16px;
+            color: #333;
+            flex-basis: 40%;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="file"] {
+            flex-basis: 58%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 2px solid #8ecae6; /* Border color matching theme */
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group input[type="file"]:focus {
+            border-color: #219ebc;
+        }
+
+        /* Checkbox styling */
+        .checkbox-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group label {
+            font-size: 16px;
+            color: #333;
+            flex-basis: 40%;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        /* Submit button */
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #8ecae6;
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #219ebc;
+        }
+
+        /* Footer links */
+        .footer-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        .footer-links a {
+            color: #4CAF50;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #388E3C;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .form-group {
+                flex-direction: column;
+            }
+
+            .form-group label,
+            .form-group input[type="text"],
+            .form-group input[type="number"],
+            .form-group input[type="file"] {
+                flex-basis: 100%;
+                margin-bottom: 10px;
+            }
+
+            .checkbox-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h1><strong>Manual Docking</strong></h1>
+
+        <form name="runForm" action="/manual" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="nanobody">Nanobody sequence</label>
+                <input type="text" name="content" id="nanobody" placeholder="Enter nanobody sequence">
+            </div>
+
+            <div class="form-group">
+                <label for="n_structure"># of Predicted Structures</label>
+                <input type="number" name="n_structure" id="n_structure" value="1" min="1" max="100">
+            </div>
+
+            <div class="form-group">
+                <label for="pdb_file">Antigen Structure (PDB file)</label>
+                <input type="file" name="pdb_file" id="pdb_file">
+            </div>
+
+            <div class="checkbox-group">
+                <label for="docking">Docking Tool Selection</label>
+                <div>
+                    <input type="checkbox" name="docking" value="diffdock" checked>Diffdock-PP
+                    <input type="checkbox" name="docking" value="haddock">Haddock3
+                </div>
+            </div>
+
+            <input type="submit" value="Submit job" class="submit-btn">
+        </form>
+
+        <div class="footer-links">
+        </div>
+    </div>
+
+    <script type="module">
+        import { checkDockingTool } from '../static/js/m2dpost.js';
+        const checkboxes = document.getElementsByName('docking');
+        checkboxes.forEach((checkbox) => {
+            checkbox.addEventListener('click', (event) => {
+                checkDockingTool(event.target);
+            });
+        });
+    </script>
+
+</body>
+</html>
